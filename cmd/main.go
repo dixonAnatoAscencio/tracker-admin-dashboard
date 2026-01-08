@@ -12,30 +12,36 @@ import (
 func main() {
 	cfg := loadConfig()
 
+	// Logger
 	logger := slog.New(
 		slog.NewTextHandler(os.Stdout, nil),
 	)
 	slog.SetDefault(logger)
 
+	// Database
 	dbModel, err := models.InitDB(cfg.DBPath)
 	if err != nil {
 		slog.Error("Failed to initialize database", "error", err)
 		os.Exit(1)
 	}
-
 	slog.Info("Database initialized successfully")
 
+	// Validators
 	RegisterCustomValidators()
 
+	// Handlers
 	h := NewHandler(dbModel)
 
+	// Router
 	router := gin.Default()
 
+	// Templates (CRÍTICO)
 	if err := loadTemplates(router); err != nil {
 		slog.Error("Failed to load templates", "error", err)
 		os.Exit(1)
 	}
 
+	// Routes
 	setupRoutes(router, h)
 
 	slog.Info("Server starting", "url", "http://localhost:"+cfg.Port)
